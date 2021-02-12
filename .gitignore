@@ -276,3 +276,8 @@ TSWLatexianTemp*
 *.lpz
 
 design/design.pdf
+atomic_mixtures_backend/__pycache__/cold_atom_provider.cpython-37.pyc
+atomic_mixtures_backend/__pycache__/atomic_mixtures_backends.cpython-37.pyc
+atomic_mixtures_backend/__pycache__/circuit_library.cpython-37.pyc
+atomic_mixtures_backend/__pycache__/circuit_to_cold_atom.cpython-37.pyc
+atomic_mixtures_backend/__pycache__/cold_atom_job.cpython-37.pyc

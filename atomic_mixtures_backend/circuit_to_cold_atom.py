@@ -12,19 +12,16 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""converts a circuit to a JSon payload"""
 
 from typing import Union, List
 
 from qiskit import QuantumCircuit, QiskitError
-from qiskit.providers import BackendV1
 
 
-def circuit_to_data(circuit: QuantumCircuit, backend: BackendV1):
+def circuit_to_data(circuit: QuantumCircuit, backend):
     """ helper function that converts a QuantumCircuit into a list of symbolic instructions
     as required by the Json format which is sent to the backend"""
 
-    # Load the native gates that the backend supports form its configuration dict
     try:
         native_gates = {_.name: _.coupling_map for _ in backend.configuration().gates}
         native_instructions = backend.configuration().supported_instructions
@@ -33,8 +30,6 @@ def circuit_to_data(circuit: QuantumCircuit, backend: BackendV1):
 
     instructions = []
 
-    # validating all instructions in the circuit: Checking that the backend supports the instruction and that
-    # the coupling maps of the gate fit the applied wire structure of the applied gates
     for inst in circuit.data:
 
         name = inst[0].name
@@ -54,7 +49,7 @@ def circuit_to_data(circuit: QuantumCircuit, backend: BackendV1):
         assert name in native_instructions, "{} does not support {}.".format(backend.name(), name)
 
         # for the gates, check whether coupling map fits
-        if name in native_gates.keys():
+        if name in native_gates:
             couplings = native_gates[name]
             assert wires in couplings, \
                 "coupling {} not supported for gate {} on {}; possible couplings: {}"\
@@ -66,7 +61,7 @@ def circuit_to_data(circuit: QuantumCircuit, backend: BackendV1):
 
 
 def circuit_to_cold_atom(circuits: Union[List[QuantumCircuit], QuantumCircuit],
-                         backend: BackendV1,
+                         backend,
                          shots: int = 60):
     """
     Converts a circuit to a JSon payload.
@@ -84,7 +79,7 @@ def circuit_to_cold_atom(circuits: Union[List[QuantumCircuit], QuantumCircuit],
 
     experiments = {}
     for idx, circuit in enumerate(circuits):
-        experiments['experiment_%i' % idx] = {'data': circuit_to_data(circuit, backend),
+        experiments['experiment_%i' % idx] = {'instructions': circuit_to_data(circuit, backend),
                                               'shots': shots,
                                               'num_wires': circuit.num_qubits}
 

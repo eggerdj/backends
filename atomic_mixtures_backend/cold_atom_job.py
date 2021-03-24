@@ -18,18 +18,18 @@ from typing import Dict
 import time
 import requests
 
+from typing import Union
+from qiskit.providers import BackendV1, BaseBackend
 from qiskit.providers import JobV1 as Job
 from qiskit.providers import JobTimeoutError, JobError
-from qiskit.providers import BackendV1 as Backend
 from qiskit.providers import JobStatus
 from qiskit.result import Result
 
 
 class ColdAtomJob(Job):
 
-    def __init__(self, backend: Backend, job_id: str):
+    def __init__(self, backend: Union[BackendV1, BaseBackend], job_id: str):
         """
-
         Args:
             backend: The backend on which the job was run.
             job_id: The ID of the job.

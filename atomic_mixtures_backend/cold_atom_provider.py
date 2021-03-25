@@ -44,10 +44,11 @@ class ColdAtomProvider:
         self.name = 'cold_atom_provider'
 
         # Populate the list of backends
-        self.backends = BackendService([AtomicMixtureSimulator(provider=self),
-                                        AtomicMixtureDevice(provider=self),
+        self.backends = BackendService([
+                                        # AtomicMixtureSimulator(provider=self),
+                                        # AtomicMixtureDevice(provider=self),
                                         CoherentSpinsDevice(provider=self),
-                                        CoherentSpinsQubits(provider=self)
+                                        # CoherentSpinsQubits(provider=self)
                                         ])
 
     def __str__(self):

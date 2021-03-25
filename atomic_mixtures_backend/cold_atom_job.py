@@ -25,6 +25,8 @@ from qiskit.providers import JobTimeoutError, JobError
 from qiskit.providers import JobStatus
 from qiskit.result import Result
 
+import json
+
 
 class ColdAtomJob(Job):
 
@@ -82,10 +84,11 @@ class ColdAtomJob(Job):
             "access_token": self._backend.access_token,
             "SDK": "qiskit"
         }
-        result = requests.put(self._backend.url + '/status',
-                              json={'job_id': self._job_id,
-                                    'access_token': self._backend.access_token},
-                              headers=header)
+
+        payload = {'job_id': '20210325_141206_ff7f6'}
+
+        result = requests.post(self._backend.url + '/check_shot_status/',
+                               data={'json': json.dumps(payload)})
 
         code = result.status_code
 

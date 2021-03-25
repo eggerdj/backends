@@ -24,6 +24,8 @@ from qiskit import QuantumCircuit, QiskitError
 from circuit_to_cold_atom import circuit_to_cold_atom
 from cold_atom_job import ColdAtomJob
 
+import json
+
 
 class BosonicBackend(Backend, ABC):
     """Abstract base class for atomic mixture backends."""
@@ -73,7 +75,7 @@ class CoherentSpinsDevice(BosonicBackend):
     """Atomic mixture hardware backend."""
 
     def __init__(self, provider):
-        self.url = 'http://127.0.0.1:5000/spins'
+        self.url = 'http://localhost:9000/shots'
 
         # Get the config from the url
         r = requests.get(url=self.url + '/config')
@@ -86,9 +88,28 @@ class CoherentSpinsDevice(BosonicBackend):
     def _default_options(cls) -> Options:
         return Options(shots=1)
 
+    @property
+    def access_token(self) -> str:
+        """Returns: the access token used."""
+        return self.provider().access_token
+
     def run(self, circuits: Union[QuantumCircuit, List[QuantumCircuit]], **kwargs) -> ColdAtomJob:
         """Run a quantum circuit or list of quantum circuits."""
-        pass
+        header = {'access_token': self.access_token, 'SDK': 'qiskit'}
+
+        payload = circuit_to_cold_atom(circuits, self)
+
+        res = requests.post(self.url + '/upload/', data={'json': json.dumps(payload)})  # headers=header)
+        res.raise_for_status()
+        response = res.json()
+
+        print(type(response))
+        print(response)
+
+        if 'job_id' not in response:
+            raise Exception
+
+        return ColdAtomJob(self, response['job_id'])
 
 
 class AtomicMixtureDevice(BosonicBackend):

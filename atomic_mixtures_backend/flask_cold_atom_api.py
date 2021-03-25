@@ -260,8 +260,8 @@ def get_mixtures_simulator():
 def handle_spins_run():
     data = request.get_json()
 
-    print('data')
-    print(data)
+    # print('data')
+    # print(data)
 
     job_id, job_status = MockSetup().run_qiskit_job(data)
 

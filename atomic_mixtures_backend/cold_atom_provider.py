@@ -17,13 +17,18 @@ from typing import Callable
 from qiskit.providers import BackendV1 as Backend
 from qiskit.providers.providerutils import filter_backends
 from qiskit.providers.exceptions import QiskitBackendNotFoundError
-from bosonic_backends import AtomicMixtureDevice, AtomicMixtureSimulator, CoherentSpinsDevice, CoherentSpinsQubits
+from bosonic_backends import (
+    AtomicMixtureDevice,
+    AtomicMixtureSimulator,
+    CoherentSpinsDevice,
+    CoherentSpinsQubits,
+)
 
 
 class ColdAtomProvider:
     """
     Provider for cold atom backends.
-    
+
     Typical usage is:
     .. code-block:: python
         from qiskit_cold_atom_provider import ColdAtomProvider
@@ -41,15 +46,17 @@ class ColdAtomProvider:
         super().__init__()
 
         self.access_token = access_token
-        self.name = 'cold_atom_provider'
+        self.name = "cold_atom_provider"
 
         # Populate the list of backends
-        self.backends = BackendService([
-                                        # AtomicMixtureSimulator(provider=self),
-                                        # AtomicMixtureDevice(provider=self),
-                                        CoherentSpinsDevice(provider=self),
-                                        # CoherentSpinsQubits(provider=self)
-                                        ])
+        self.backends = BackendService(
+            [
+                # AtomicMixtureSimulator(provider=self),
+                # AtomicMixtureDevice(provider=self),
+                CoherentSpinsDevice(provider=self),
+                # CoherentSpinsQubits(provider=self)
+            ]
+        )
 
     def __str__(self):
         return "<ColdAtomProvider(name={})>".format(self.name)
@@ -70,9 +77,9 @@ class ColdAtomProvider:
         """
         backends = self.backends(name, **kwargs)
         if len(backends) > 1:
-            raise QiskitBackendNotFoundError('More than one backend matches criteria.')
+            raise QiskitBackendNotFoundError("More than one backend matches criteria.")
         if not backends:
-            raise QiskitBackendNotFoundError('No backend matches criteria.')
+            raise QiskitBackendNotFoundError("No backend matches criteria.")
 
         return backends[0]
 
@@ -109,7 +116,6 @@ class BackendService:
         # pylint: disable=arguments-differ
         backends = self._backends
         if name:
-            backends = [
-                backend for backend in backends if backend.name() == name]
+            backends = [backend for backend in backends if backend.name() == name]
 
         return filter_backends(backends, filters=filters, **kwargs)

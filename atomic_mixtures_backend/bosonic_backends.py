@@ -78,7 +78,7 @@ class CoherentSpinsDevice(BosonicBackend):
         self.url = 'http://localhost:9000/shots'
 
         # Get the config from the url
-        r = requests.get(url=self.url + '/config')
+        r = requests.get(url=self.url + '/get_config')
 
         super().__init__(
             configuration=BackendConfiguration.from_dict(r.json()),
@@ -99,12 +99,12 @@ class CoherentSpinsDevice(BosonicBackend):
 
         payload = circuit_to_cold_atom(circuits, self)
 
-        res = requests.post(self.url + '/upload/', data={'json': json.dumps(payload)})  # headers=header)
+        res = requests.post(self.url + '/post_job/', data={'json': json.dumps(payload)})  # headers=header)
         res.raise_for_status()
         response = res.json()
 
-        print(type(response))
-        print(response)
+        # print(type(response))
+        # print(response)
 
         if 'job_id' not in response:
             raise Exception

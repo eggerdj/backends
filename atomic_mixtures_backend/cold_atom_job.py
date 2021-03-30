@@ -63,12 +63,13 @@ class ColdAtomJob(Job):
                 raise JobTimeoutError('Timed out waiting for result')
 
             params = {'job_id': self._job_id, 'access_token': token}
-            result = requests.get(self._backend.url, params=params, headers=header).json()
+            result = requests.get(self._backend.url + '/get_job_result/', params=params, headers=header).json()
 
             if result['status'] == 'finished':
                 break
             if result['status'] == 'error':
                 raise JobError('API returned error:\n' + str(result))
+            print('completed cycle')
             time.sleep(wait)
 
         return result
@@ -85,25 +86,36 @@ class ColdAtomJob(Job):
             "SDK": "qiskit"
         }
 
-        payload = {'job_id': '20210325_141206_ff7f6'}
+        # TODO: adjust this payload
+        if not self.job_id():
+            raise Exception
 
-        result = requests.post(self._backend.url + '/check_shot_status/',
-                               data={'json': json.dumps(payload)})
+        payload = {'job_id': self.job_id()}
 
-        code = result.status_code
+        result = requests.get(self._backend.url + '/get_job_status/', params={'json': json.dumps(payload)})
 
-        print(result)
-        print(code)
+        # code = result.status_code
+        #
+        # print(result)
+        # print(code)
 
-        if code == 100:
-            status = JobStatus.RUNNING
-        elif code == 200:
-            status = JobStatus.DONE
-        elif code in [201, 202]:
-            status = JobStatus.INITIALIZING
-        else:
-            status = JobStatus.ERROR
-        return status
+        # Rohid suggestion: Replace these ifs
+        # Instead pick the status that is entered in the result dictionary
+        # This makes sense because this is what the _wait_for_result does
+
+        # if code == 100:
+        #     status = JobStatus.RUNNING
+        # elif code == 200:
+        #     status = JobStatus.DONE
+        # elif code in [201, 202]:
+        #     status = JobStatus.INITIALIZING
+        # else:
+        #     status = JobStatus.ERROR
+        # return status
+
+        return result.json()['status']
+
+    # TODO: Make detail key of response retrievable
 
     def cancel(self):
         pass

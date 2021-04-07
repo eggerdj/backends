@@ -94,8 +94,12 @@ class ColdAtomJob(Job):
 
         result = requests.get(self._backend.url + '/get_job_status/', params={'json': json.dumps(payload)})
 
-        # code = result.status_code
-        #
+        print(result)
+
+        code = result.status_code
+
+        print(code)
+
         # print(result)
         # print(code)
 

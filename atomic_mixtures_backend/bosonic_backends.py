@@ -112,68 +112,8 @@ class CoherentSpinsDevice(BosonicBackend):
         return ColdAtomJob(self, response['job_id'])
 
 
-class AtomicMixtureDevice(BosonicBackend):
-    """Atomic mixture hardware backend."""
-
-    def __init__(self, provider):
-        self.url = 'http://127.0.0.1:5000/mixtures'
-
-        # Get the config from the url
-        r = requests.get(url=self.url + '/config')
-
-        super().__init__(
-            configuration=BackendConfiguration.from_dict(r.json()),
-            provider=provider)
-
-    @property
-    def access_token(self) -> str:
-        """Returns: the access token used."""
-        return self.provider().access_token
-
-    @classmethod
-    def _default_options(cls) -> Options:
-        return Options(shots=1)
-
-    def run(self, circuits: Union[QuantumCircuit, List[QuantumCircuit]], **kwargs) -> ColdAtomJob:
-        """Run a quantum circuit or list of quantum circuits."""
-        header = {'access_token': self.access_token, 'SDK': 'qiskit'}
-
-        data = circuit_to_cold_atom(circuits, self)
-
-        res = requests.put(self.url, json=data, headers=header)
-        res.raise_for_status()
-        response = res.json()
-
-        if 'job_id' not in response:
-            raise Exception
-
-        return ColdAtomJob(self, response['job_id'])
-
-
-class AtomicMixtureSimulator(BosonicBackend):
-    """Atomic mixture mean field simulator."""
-
-    def __init__(self, provider):
-        self.url = 'http://127.0.0.1:5000/mixtures/simulator'
-
-        # Get the config from the url
-        r = requests.get(url=self.url + '/config')
-
-        super().__init__(
-            configuration=BackendConfiguration.from_dict(r.json()),
-            provider=provider)
-
-    @classmethod
-    def _default_options(cls):
-        return Options(shots=1)
-
-    def run(self, circuits, **kwargs):
-        """Run a simulation job. TODO"""
-        pass
-
-
-class CoherentSpinsQubits(BosonicBackend):
-    """Backend to describe a cold atom hardware using qubits encoded in coherent spins of trapped BECs
+class CoherentSpinsSimulator(BosonicBackend):
+    """Backend to describe a cold atom hardware using qudits encoded in coherent spins of trapped BECs
     as proposed in https://arxiv.org/pdf/2010.15923."""
 
     _DEFAULT_CONFIGURATION = {
@@ -186,7 +126,7 @@ class CoherentSpinsQubits(BosonicBackend):
         'coupling_map': [[0, 1], [0, 2], [1, 2], [0, 3], [1, 3], [2, 3], [0, 4], [1, 4], [2, 4], [3, 4], [1, 0],
                          [2, 0], [2, 1], [3, 0], [3, 1], [3, 2], [4, 0], [4, 1], [4, 2], [4, 3]],
         'description': 'Cold atom qubits encoded in coherent spins of trapped BECs',
-        'basis_gates': ['id', 'rx', 'rz', 'cz'],
+        'basis_gates': ['id', 'rx', 'rz', 'rz2', 'cz'],
         'memory': False,
         'max_shots': 1000,
         'open_pulse': False,

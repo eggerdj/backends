@@ -114,12 +114,10 @@ class CoherentSpinsDevice(BosonicBackend):
 
         res = requests.post(
             self.url + "/post_job/", data={"json": json.dumps(payload)}
-        )  # headers=header)
+        )  # ToDo: Add header to communicate the access token headers=header)
+
         res.raise_for_status()
         response = res.json()
-
-        # print(type(response))
-        # print(response)
 
         if "job_id" not in response:
             raise Exception

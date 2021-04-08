@@ -19,17 +19,20 @@ import time
 import requests
 
 from typing import Union
-from qiskit.providers import BackendV1, BaseBackend
+from qiskit.providers import (
+    BackendV1,
+    BaseBackend,
+    JobTimeoutError,
+    JobError,
+    JobStatus,
+)
 from qiskit.providers import JobV1 as Job
-from qiskit.providers import JobTimeoutError, JobError
-from qiskit.providers import JobStatus
 from qiskit.result import Result
 
 import json
 
 
 class ColdAtomJob(Job):
-
     def __init__(self, backend: Union[BackendV1, BaseBackend], job_id: str):
         """
         Args:
@@ -52,24 +55,23 @@ class ColdAtomJob(Job):
         token = self._backend.access_token
         start_time = time.time()
 
-        header = {
-            "access_token": token,
-            "SDK": "qiskit"
-        }
+        header = {"access_token": token, "SDK": "qiskit"}
 
         while True:
             elapsed = time.time() - start_time
             if timeout and elapsed >= timeout:
-                raise JobTimeoutError('Timed out waiting for result')
+                raise JobTimeoutError("Timed out waiting for result")
 
-            params = {'job_id': self._job_id, 'access_token': token}
-            result = requests.get(self._backend.url + '/get_job_result/', params=params, headers=header).json()
+            params = {"job_id": self._job_id, "access_token": token}
+            result = requests.get(
+                self._backend.url + "/get_job_result/", params=params, headers=header
+            ).json()
 
-            if result['status'] == 'finished':
+            if result["status"] == "finished":
                 break
-            if result['status'] == 'error':
-                raise JobError('API returned error:\n' + str(result))
-            print('completed cycle')
+            if result["status"] == "error":
+                raise JobError("API returned error:\n" + str(result))
+
             time.sleep(wait)
 
         return result
@@ -81,43 +83,39 @@ class ColdAtomJob(Job):
         return Result.from_dict(result_dict)
 
     def status(self):
-        header = {
-            "access_token": self._backend.access_token,
-            "SDK": "qiskit"
-        }
+        header = {"access_token": self._backend.access_token, "SDK": "qiskit"}
 
         # TODO: adjust this payload
         if not self.job_id():
             raise Exception
 
-        payload = {'job_id': self.job_id()}
+        payload = {"job_id": self.job_id()}
 
-        result = requests.get(self._backend.url + '/get_job_status/', params={'json': json.dumps(payload)})
+        r = requests.get(
+            self._backend.url + "/get_job_status/", params={"json": json.dumps(payload)}
+        )
 
-        print(result)
+        status_string = r.json()["status"]
 
-        code = result.status_code
+        # If the backend can not be reached return ERROR as a status
+        if r.status_code != 200:
+            status = JobStatus.ERROR
+        elif status_string == "initializing":
+            status = JobStatus.INITIALIZING
+        elif status_string == "queued":
+            status = JobStatus.QUEUED
+        elif status_string == "validating":
+            status = JobStatus.VALIDATING
+        elif status_string == "running":
+            status = JobStatus.RUNNING
+        elif status_string == "cancelled":
+            status = JobStatus.CANCELLED
+        elif status_string == "done":
+            status = JobStatus.DONE
+        else:
+            status = JobStatus.ERROR
 
-        print(code)
-
-        # print(result)
-        # print(code)
-
-        # Rohid suggestion: Replace these ifs
-        # Instead pick the status that is entered in the result dictionary
-        # This makes sense because this is what the _wait_for_result does
-
-        # if code == 100:
-        #     status = JobStatus.RUNNING
-        # elif code == 200:
-        #     status = JobStatus.DONE
-        # elif code in [201, 202]:
-        #     status = JobStatus.INITIALIZING
-        # else:
-        #     status = JobStatus.ERROR
-        # return status
-
-        return result.json()['status']
+        return status
 
     # TODO: Make detail key of response retrievable
 

@@ -18,10 +18,8 @@ from qiskit.providers import BackendV1 as Backend
 from qiskit.providers.providerutils import filter_backends
 from qiskit.providers.exceptions import QiskitBackendNotFoundError
 from bosonic_backends import (
-    AtomicMixtureDevice,
-    AtomicMixtureSimulator,
     CoherentSpinsDevice,
-    CoherentSpinsQubits,
+    CoherentSpinsSimulator,
 )
 
 
@@ -51,10 +49,8 @@ class ColdAtomProvider:
         # Populate the list of backends
         self.backends = BackendService(
             [
-                # AtomicMixtureSimulator(provider=self),
-                # AtomicMixtureDevice(provider=self),
                 CoherentSpinsDevice(provider=self),
-                # CoherentSpinsQubits(provider=self)
+                CoherentSpinsSimulator(provider=self)
             ]
         )
 
